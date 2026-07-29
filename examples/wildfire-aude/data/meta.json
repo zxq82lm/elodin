@@ -1,0 +1,23 @@
+{
+  "lon_min": 2.55,
+  "lat_min": 42.95,
+  "lon_max": 2.97,
+  "lat_max": 43.14,
+  "m_per_deg_lon": 81354.64148648261,
+  "m_per_deg_lat": 111132.0,
+  "cell_m": 300.0,
+  "nx": 114,
+  "ny": 70,
+  "ignition_ix": 17,
+  "ignition_iy": 50,
+  "ignition_lon": 2.615,
+  "ignition_lat": 43.085,
+  "effis_id": 276934,
+  "effis_area_ha": 11391,
+  "effis_firedate": "2025-08-05T19:47:00+02:00",
+  "sources": {
+    "effis": "https://api.effis.emergency.copernicus.eu/rest/2/burntareas/current/276934/?format=json",
+    "dem": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_{lat}_00_{lon}_00_DEM/Copernicus_DSM_COG_10_{lat}_00_{lon}_00_DEM.tif",
+    "worldcover": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N42E000_Map.tif"
+  }
+}

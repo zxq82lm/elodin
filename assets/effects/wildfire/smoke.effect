@@ -1,0 +1,208 @@
+// Wildfire convection column, authored in KILOMETRES (see wildfire.scene.ron).
+//
+// One instance per 900 m burning cell, so this must stay light: dozens to
+// hundreds overlap in the Elodin scene and their sum makes the plume. Particles
+// fly along local -Y, which the emitter rotates onto the leaning wind axis.
+//
+// Sized on the real event: puffs grow 50 m -> 600 m across while the column
+// climbs ~2-3 km, i.e. a tall sheared plume rather than a spreading pancake.
+(
+  name: "wildfire_smoke",
+  capacity: 512,
+  spawner: (
+    count: Single(10.0),
+    spawn_duration: Single(1.0),
+    period: Single(1.0),
+    cycle_count: 0,
+    starts_active: true,
+    emit_on_start: true,
+  ),
+  z_layer_2d: 0.0,
+  simulation_space: Local,
+  simulation_condition: WhenVisible,
+  prng_seed: 0,
+  init_modifiers: [
+    {
+      "bevy_hanabi::modifier::position::SetPositionCone3dModifier": (
+        height: "#1",
+        base_radius: "#2",
+        top_radius: "#3",
+        dimension: Volume,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "velocity",
+        value: "#11",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "age",
+        value: "#14",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "lifetime",
+        value: "#17",
+      ),
+    },
+  ],
+  update_modifiers: [
+    {
+      "bevy_hanabi::modifier::force::LinearDragModifier": (
+        drag: "#18",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::accel::AccelModifier": (
+        accel: "#19",
+      ),
+    },
+  ],
+  render_modifiers: [
+    // Random per-particle roll: without it every puff shows the same sprite
+    // orientation and the column reads as a stack of identical discs.
+    {
+      "bevy_hanabi::modifier::output::OrientModifier": (
+        mode: FaceCameraPosition,
+        rotation: Some("#22"),
+      ),
+    },
+    {
+      // Full RGBA modulate: smoke_puff carries its shape in ALPHA and baked
+      // shading in RGB. Sampling opacity from R would read ~1 everywhere and
+      // draw hard-edged squares.
+      "bevy_hanabi::modifier::output::ParticleTextureModifier": (
+        texture_slot: "#20",
+        sample_mapping: Modulate,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::output::SizeOverLifetimeModifier": (
+        gradient: (
+          keys: [
+            (
+              ratio: 0.0,
+              value: (0.08, 0.08, 0.08),
+            ),
+            (
+              ratio: 0.15,
+              value: (0.14, 0.14, 0.14),
+            ),
+            (
+              ratio: 0.5,
+              value: (0.25, 0.25, 0.25),
+            ),
+            (
+              ratio: 1.0,
+              value: (0.55, 0.55, 0.55),
+            ),
+          ],
+        ),
+        screen_space_size: false,
+      ),
+    },
+    // Dark soot at the base (fresh, optically thick), bleaching to sunlit tan
+    // as it rises and dilutes. Alpha does the density work, not brightness.
+    {
+      "bevy_hanabi::modifier::output::ColorOverLifetimeModifier": (
+        gradient: (
+          keys: [
+            (
+              ratio: 0.0,
+              value: (0.045, 0.038, 0.032, 0.0),
+            ),
+            (
+              ratio: 0.05,
+              value: (0.070, 0.058, 0.046, 0.58),
+            ),
+            (
+              ratio: 0.35,
+              value: (0.130, 0.105, 0.082, 0.48),
+            ),
+            (
+              ratio: 0.70,
+              value: (0.300, 0.260, 0.200, 0.32),
+            ),
+            (
+              ratio: 1.0,
+              value: (0.550, 0.480, 0.380, 0.0),
+            ),
+          ],
+        ),
+        blend: Overwrite,
+        mask: (15),
+      ),
+    },
+  ],
+  motion_integration: PostUpdate,
+  module: (
+    expressions: [
+      Literal(Scalar(Float(0.04))),
+      Literal(Scalar(Float(0.10))),
+      Literal(Scalar(Float(0.06))),
+      // Virtual apex behind the emitter: sets the column's divergence.
+      Literal(Vector(Vec3((0.0, 0.9, 0.0)))),
+      Literal(Scalar(Float(0.30))),
+      Literal(Scalar(Float(0.50))),
+      Binary(
+        op: UniformRand,
+        left: "#5",
+        right: "#6",
+      ),
+      Attribute((
+        attr: "position",
+      )),
+      Binary(
+        op: Sub,
+        left: "#8",
+        right: "#4",
+      ),
+      Unary(
+        op: Normalize,
+        expr: "#9",
+      ),
+      Binary(
+        op: Mul,
+        left: "#10",
+        right: "#7",
+      ),
+      Literal(Scalar(Float(0.0))),
+      Literal(Scalar(Float(1.0))),
+      Binary(
+        op: UniformRand,
+        left: "#12",
+        right: "#13",
+      ),
+      Literal(Scalar(Float(9.0))),
+      Literal(Scalar(Float(15.0))),
+      Binary(
+        op: UniformRand,
+        left: "#15",
+        right: "#16",
+      ),
+      Literal(Scalar(Float(0.10))),
+      // Buoyancy, along the plume axis (local -Y).
+      Literal(Vector(Vec3((0.0, -0.03, 0.0)))),
+      Literal(Scalar(Uint(0))),
+      Literal(Scalar(Float(6.2832))),
+      Binary(
+        op: UniformRand,
+        left: "#12",
+        right: "#21",
+      ),
+    ],
+    properties: [],
+    texture_layout: (
+      layout: [
+        (
+          name: "smoke",
+        ),
+      ],
+    ),
+  ),
+  alpha_mode: Blend,
+  mesh: None,
+)

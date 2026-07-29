@@ -1,0 +1,181 @@
+// Flame tongues at the fire front, authored in KILOMETRES.
+//
+// Scaled to real flame lengths for Mediterranean shrub/forest fire: sprites are
+// 45-65 m tall and ~25 m wide (0.045-0.065 units). At the editor's 15 km
+// viewing distance a single flame is a few pixels — the fire LINE is what
+// reads, as an incandescent ribbon lifted by HDR bloom. Additive blending is
+// what makes it emit rather than look like pale smoke.
+(
+  name: "wildfire_flame",
+  capacity: 256,
+  spawner: (
+    count: Single(60.0),
+    spawn_duration: Single(1.0),
+    period: Single(1.0),
+    cycle_count: 0,
+    starts_active: true,
+    emit_on_start: true,
+  ),
+  z_layer_2d: 0.0,
+  simulation_space: Local,
+  simulation_condition: WhenVisible,
+  prng_seed: 0,
+  init_modifiers: [
+    {
+      "bevy_hanabi::modifier::position::SetPositionCone3dModifier": (
+        height: "#1",
+        base_radius: "#2",
+        top_radius: "#3",
+        dimension: Volume,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "velocity",
+        value: "#11",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "age",
+        value: "#14",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "lifetime",
+        value: "#17",
+      ),
+    },
+  ],
+  update_modifiers: [
+    {
+      "bevy_hanabi::modifier::force::LinearDragModifier": (
+        drag: "#18",
+      ),
+    },
+  ],
+  render_modifiers: [
+    {
+      "bevy_hanabi::modifier::output::OrientModifier": (
+        mode: AlongVelocity,
+        rotation: None,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::output::ParticleTextureModifier": (
+        texture_slot: "#19",
+        sample_mapping: ModulateOpacityFromR,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::output::SizeOverLifetimeModifier": (
+        gradient: (
+          keys: [
+            (
+              ratio: 0.0,
+              value: (0.045, 0.022, 0.022),
+            ),
+            (
+              ratio: 0.3,
+              value: (0.065, 0.028, 0.028),
+            ),
+            (
+              ratio: 1.0,
+              value: (0.014, 0.009, 0.009),
+            ),
+          ],
+        ),
+        screen_space_size: false,
+      ),
+    },
+    // Incandescent core -> orange body -> deep red tip. Values well above 1.0
+    // because the camera is a physically exposed HDR sensor.
+    {
+      "bevy_hanabi::modifier::output::ColorOverLifetimeModifier": (
+        gradient: (
+          keys: [
+            (
+              ratio: 0.0,
+              value: (30.0, 9.0, 1.4, 1.0),
+            ),
+            (
+              ratio: 0.3,
+              value: (15.0, 3.4, 0.45, 0.92),
+            ),
+            (
+              ratio: 0.65,
+              value: (5.0, 1.1, 0.16, 0.5),
+            ),
+            (
+              ratio: 1.0,
+              value: (0.5, 0.12, 0.03, 0.0),
+            ),
+          ],
+        ),
+        blend: Overwrite,
+        mask: (15),
+      ),
+    },
+  ],
+  motion_integration: PostUpdate,
+  module: (
+    expressions: [
+      Literal(Scalar(Float(0.03))),
+      Literal(Scalar(Float(0.055))),
+      Literal(Scalar(Float(0.025))),
+      // Close apex: flame tongues splay instead of forming a parallel jet.
+      Literal(Vector(Vec3((0.0, 0.35, 0.0)))),
+      Literal(Scalar(Float(0.05))),
+      Literal(Scalar(Float(0.11))),
+      Binary(
+        op: UniformRand,
+        left: "#5",
+        right: "#6",
+      ),
+      Attribute((
+        attr: "position",
+      )),
+      Binary(
+        op: Sub,
+        left: "#8",
+        right: "#4",
+      ),
+      Unary(
+        op: Normalize,
+        expr: "#9",
+      ),
+      Binary(
+        op: Mul,
+        left: "#10",
+        right: "#7",
+      ),
+      Literal(Scalar(Float(0.0))),
+      Literal(Scalar(Float(0.3))),
+      Binary(
+        op: UniformRand,
+        left: "#12",
+        right: "#13",
+      ),
+      Literal(Scalar(Float(0.5))),
+      Literal(Scalar(Float(0.9))),
+      Binary(
+        op: UniformRand,
+        left: "#15",
+        right: "#16",
+      ),
+      Literal(Scalar(Float(1.4))),
+      Literal(Scalar(Uint(0))),
+    ],
+    properties: [],
+    texture_layout: (
+      layout: [
+        (
+          name: "mask",
+        ),
+      ],
+    ),
+  ),
+  alpha_mode: Add,
+  mesh: None,
+)

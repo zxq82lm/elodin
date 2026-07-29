@@ -1,0 +1,175 @@
+// Firebrands blown off the front, authored in KILOMETRES.
+//
+// Streaks stretched along velocity, launched up the plume axis and pulled back
+// by gravity (local +Y is "back down the axis"), so they arc downwind 150-900 m
+// — the visual counterpart of the ember-spotting term in the spread model.
+(
+  name: "wildfire_sparks",
+  capacity: 128,
+  spawner: (
+    count: Single(20.0),
+    spawn_duration: Single(1.0),
+    period: Single(1.0),
+    cycle_count: 0,
+    starts_active: true,
+    emit_on_start: true,
+  ),
+  z_layer_2d: 0.0,
+  simulation_space: Local,
+  simulation_condition: WhenVisible,
+  prng_seed: 0,
+  init_modifiers: [
+    {
+      "bevy_hanabi::modifier::position::SetPositionCone3dModifier": (
+        height: "#1",
+        base_radius: "#2",
+        top_radius: "#3",
+        dimension: Volume,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "velocity",
+        value: "#11",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "age",
+        value: "#14",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::attr::SetAttributeModifier": (
+        attribute: "lifetime",
+        value: "#17",
+      ),
+    },
+  ],
+  update_modifiers: [
+    {
+      "bevy_hanabi::modifier::force::LinearDragModifier": (
+        drag: "#18",
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::accel::AccelModifier": (
+        accel: "#19",
+      ),
+    },
+  ],
+  render_modifiers: [
+    {
+      "bevy_hanabi::modifier::output::OrientModifier": (
+        mode: AlongVelocity,
+        rotation: None,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::output::ParticleTextureModifier": (
+        texture_slot: "#20",
+        sample_mapping: ModulateOpacityFromR,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::output::SizeOverLifetimeModifier": (
+        gradient: (
+          keys: [
+            (
+              ratio: 0.0,
+              value: (0.075, 0.013, 0.013),
+            ),
+            (
+              ratio: 1.0,
+              value: (0.035, 0.006, 0.006),
+            ),
+          ],
+        ),
+        screen_space_size: false,
+      ),
+    },
+    {
+      "bevy_hanabi::modifier::output::ColorOverLifetimeModifier": (
+        gradient: (
+          keys: [
+            (
+              ratio: 0.0,
+              value: (26.0, 13.0, 3.2, 1.0),
+            ),
+            (
+              ratio: 0.55,
+              value: (10.0, 2.8, 0.4, 0.85),
+            ),
+            (
+              ratio: 1.0,
+              value: (1.2, 0.3, 0.06, 0.0),
+            ),
+          ],
+        ),
+        blend: Overwrite,
+        mask: (15),
+      ),
+    },
+  ],
+  motion_integration: PostUpdate,
+  module: (
+    expressions: [
+      Literal(Scalar(Float(0.05))),
+      Literal(Scalar(Float(0.08))),
+      Literal(Scalar(Float(0.04))),
+      Literal(Vector(Vec3((0.0, 1.2, 0.0)))),
+      Literal(Scalar(Float(0.18))),
+      Literal(Scalar(Float(0.45))),
+      Binary(
+        op: UniformRand,
+        left: "#5",
+        right: "#6",
+      ),
+      Attribute((
+        attr: "position",
+      )),
+      Binary(
+        op: Sub,
+        left: "#8",
+        right: "#4",
+      ),
+      Unary(
+        op: Normalize,
+        expr: "#9",
+      ),
+      Binary(
+        op: Mul,
+        left: "#10",
+        right: "#7",
+      ),
+      Literal(Scalar(Float(0.0))),
+      Literal(Scalar(Float(0.4))),
+      Binary(
+        op: UniformRand,
+        left: "#12",
+        right: "#13",
+      ),
+      Literal(Scalar(Float(0.8))),
+      Literal(Scalar(Float(2.0))),
+      Binary(
+        op: UniformRand,
+        left: "#15",
+        right: "#16",
+      ),
+      Literal(Scalar(Float(0.7))),
+      // Gravity: +Y local points back down the plume axis.
+      Literal(Vector(Vec3((0.0, 0.14, 0.0)))),
+      Literal(Scalar(Uint(0))),
+    ],
+    properties: [],
+    texture_layout: (
+      layout: [
+        (
+          name: "mask",
+        ),
+      ],
+    ),
+  ),
+  alpha_mode: Add,
+  mesh: None,
+)
